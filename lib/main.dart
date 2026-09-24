@@ -19,7 +19,7 @@ Future<void> main() async {
       outfitRepository: SharedPreferencesOutfitRepository(),
       notificationRepository: SharedPreferencesNotificationRepository(),
       greetingScheduler: LocalGreetingScheduler(),
-      desktopWindowController: desktopWindow,
+      desktopWindowController: Platform.isWindows ? desktopWindow : null,
     ),
   );
 }

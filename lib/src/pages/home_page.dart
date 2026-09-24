@@ -11,12 +11,14 @@ class HomePage extends StatelessWidget {
     required this.onStartChat,
     required this.onOpenSettings,
     required this.onEnterMiniMode,
+    this.showMiniMode = true,
   });
 
   final ValueListenable<CharacterState> characterState;
   final VoidCallback onStartChat;
   final VoidCallback onOpenSettings;
   final VoidCallback onEnterMiniMode;
+  final bool showMiniMode;
 
   static const _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -41,6 +43,7 @@ class HomePage extends StatelessWidget {
                       dateLabel: dateLabel,
                       onOpenSettings: onOpenSettings,
                       onEnterMiniMode: onEnterMiniMode,
+                      showMiniMode: showMiniMode,
                     ),
                     const SizedBox(height: 30),
                     Text(
@@ -213,11 +216,13 @@ class _TopBar extends StatelessWidget {
     required this.dateLabel,
     required this.onOpenSettings,
     required this.onEnterMiniMode,
+    required this.showMiniMode,
   });
 
   final String dateLabel;
   final VoidCallback onOpenSettings;
   final VoidCallback onEnterMiniMode;
+  final bool showMiniMode;
 
   @override
   Widget build(BuildContext context) {
@@ -238,12 +243,13 @@ class _TopBar extends StatelessWidget {
           onPressed: onOpenSettings,
           icon: const Icon(Icons.notifications_none_rounded),
         ),
-        IconButton(
-          key: const Key('enter-mini-mode'),
-          tooltip: '桌面迷你陪伴窗口',
-          onPressed: onEnterMiniMode,
-          icon: const Icon(Icons.picture_in_picture_alt_rounded),
-        ),
+        if (showMiniMode)
+          IconButton(
+            key: const Key('enter-mini-mode'),
+            tooltip: '桌面迷你陪伴窗口',
+            onPressed: onEnterMiniMode,
+            icon: const Icon(Icons.picture_in_picture_alt_rounded),
+          ),
       ],
     );
   }

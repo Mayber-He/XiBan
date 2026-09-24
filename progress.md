@@ -32,4 +32,8 @@
 - 完成 Windows 托盘菜单、关闭时隐藏到托盘、无边框置顶迷你窗口、拖动、角色状态展示和恢复完整窗口；复用 Windows 应用图标。
 - 第七阶段验证：`flutter analyze` 通过；`flutter test` 17 项通过；Windows Debug 构建通过。实际托盘与系统窗口行为尚未在交互桌面会话中人工验收。
 - 第七个中文提交：待创建。
-- 开始最终稳定性与双端配置检查；Android 原生构建仍受缺少 Android SDK 阻塞。
+- 为聊天流增加 30 秒无响应超时、异常友好回退与 dispose 后通知保护；防止重复发送。
+- 最终验证：`flutter analyze` 通过；`flutter test` 19 项通过；Windows Debug 与 Release 构建通过；Android APK 构建尝试因缺少 Android SDK 失败。AndroidManifest XML 可解析，原生项目配置已静态检查。
+- 交付边界：没有账号/云端服务地址与接口契约，聊天使用本地演示引擎、记忆和穿搭保存在本机；没有真人肖像/声音授权素材。Windows 托盘及真实窗口交互、Android 通知投递仍需要相应设备人工验收。
+- 第七个中文提交：`f31d43b`（功能：完成 Windows 桌面迷你陪伴窗口）。
+- 最终稳定性修复与交付说明：待创建。

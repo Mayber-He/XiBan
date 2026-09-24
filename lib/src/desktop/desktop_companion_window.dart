@@ -33,7 +33,7 @@ class InMemoryCompanionWindowController extends ChangeNotifier
   }
 
   @override
-  Future<void> disposeController() async {}
+  Future<void> disposeController() async => dispose();
 }
 
 class WindowsCompanionWindowController extends ChangeNotifier
@@ -145,6 +145,10 @@ class WindowsCompanionWindowController extends ChangeNotifier
 
   @override
   Future<void> disposeController() async {
+    if (!Platform.isWindows) {
+      dispose();
+      return;
+    }
     windowManager.removeListener(this);
     trayManager.removeListener(this);
     await trayManager.destroy();

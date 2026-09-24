@@ -83,6 +83,7 @@ class _AppShellState extends State<AppShell> {
       onStartChat: () => _select(1),
       onOpenSettings: _openNotificationSettings,
       onEnterMiniMode: () => _desktopWindowController.enterMiniMode(),
+      showMiniMode: widget.desktopWindowController != null,
     ),
     ChatPage(controller: _chatController),
     WardrobePage(controller: _wardrobeController),

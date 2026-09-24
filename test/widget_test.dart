@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:xiban_companion/src/character/character_state.dart';
 import 'package:xiban_companion/src/chat/character_engine.dart';
 import 'package:xiban_companion/src/chat/chat_controller.dart';
+import 'package:xiban_companion/src/chat/chat_message.dart';
 import 'package:xiban_companion/src/memory/companion_memory.dart';
 import 'package:xiban_companion/src/memory/memory_controller.dart';
 import 'package:xiban_companion/src/memory/memory_repository.dart';
@@ -8,6 +11,7 @@ import 'package:xiban_companion/src/wardrobe/outfit_repository.dart';
 import 'package:xiban_companion/src/wardrobe/wardrobe_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xiban_companion/src/companion_app.dart';
 import 'package:xiban_companion/src/notifications/greeting_scheduler.dart';
@@ -17,6 +21,45 @@ import 'package:xiban_companion/src/notifications/notification_preferences_repos
 import 'package:xiban_companion/src/desktop/desktop_companion_window.dart';
 
 void main() {
+  test('聊天单次只允许一个请求，并在引擎失败后给出可重试回退', () async {
+    final gate = Completer<void>();
+    final state = ValueNotifier(CharacterState.initial());
+    final controller = ChatController(
+      engine: _FailingCharacterEngine(gate),
+      characterState: state,
+    );
+    addTearDown(controller.dispose);
+    addTearDown(state.dispose);
+
+    final sending = controller.send('第一条消息');
+    expect(controller.isReplying, isTrue);
+    await controller.send('重复点击');
+    expect(controller.messages, hasLength(3));
+    gate.complete();
+    await sending;
+
+    expect(controller.isReplying, isFalse);
+    expect(controller.messages.last.content, contains('可以再试一次'));
+  });
+
+  test('流式响应在超时后会发出可处理的超时错误', () {
+    var timedOut = false;
+    fakeAsync((async) {
+      StreamController<void>().stream
+          .timeout(const Duration(milliseconds: 10))
+          .listen(
+            (_) {},
+            onError: (Object error) {
+              timedOut = error is TimeoutException;
+            },
+          );
+      async.elapse(const Duration(milliseconds: 20));
+      async.flushMicrotasks();
+    });
+
+    expect(timedOut, isTrue);
+  });
+
   test('免打扰区间正确识别跨午夜及边界时间', () {
     final preferences = NotificationPreferences.defaults();
     expect(preferences.reminderFallsInQuietHours, isFalse);
@@ -344,4 +387,19 @@ void main() {
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.text('陪伴'), findsOneWidget);
   });
+}
+
+class _FailingCharacterEngine implements CharacterEngine {
+  const _FailingCharacterEngine(this.gate);
+
+  final Completer<void> gate;
+
+  @override
+  Stream<String> streamReply({
+    required List<ChatMessage> history,
+    required CharacterState state,
+  }) async* {
+    await gate.future;
+    throw StateError('模拟服务超时');
+  }
 }
