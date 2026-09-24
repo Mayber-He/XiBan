@@ -6,7 +6,7 @@
 
 ## 本地运行
 
-需要 Flutter stable 与 Dart SDK：
+需要 Flutter 3.38.1 或更新的 stable 版本（Dart 3.10.4+）：
 
 ```powershell
 flutter pub get
@@ -19,6 +19,15 @@ flutter run -d <Android设备ID>
 ```powershell
 flutter analyze
 flutter test
+```
+
+若 `flutter --version` 显示 Dart 低于 3.10.4，请切换到较新的 Flutter SDK。仓库开发环境已放在 `.tooling/flutter` 时，可用以下 PowerShell 命令明确选择该 SDK，避免误用 PATH 中的旧版本：
+
+```powershell
+$flutter = (Resolve-Path .\.tooling\flutter\bin\flutter.bat).Path
+& $flutter --version
+& $flutter pub get
+& $flutter run -d windows
 ```
 
 Android 真机调试还需要 Android SDK、ADB 和已启用 USB 调试的设备。
