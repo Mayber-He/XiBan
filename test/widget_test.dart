@@ -10,8 +10,81 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xiban_companion/src/companion_app.dart';
+import 'package:xiban_companion/src/notifications/greeting_scheduler.dart';
+import 'package:xiban_companion/src/notifications/notification_controller.dart';
+import 'package:xiban_companion/src/notifications/notification_preferences.dart';
+import 'package:xiban_companion/src/notifications/notification_preferences_repository.dart';
 
 void main() {
+  test('免打扰区间正确识别跨午夜及边界时间', () {
+    final preferences = NotificationPreferences.defaults();
+    expect(preferences.reminderFallsInQuietHours, isFalse);
+    expect(
+      preferences.copyWith(reminderHour: 23).reminderFallsInQuietHours,
+      isTrue,
+    );
+    expect(
+      preferences
+          .copyWith(reminderHour: 7, reminderMinute: 59)
+          .reminderFallsInQuietHours,
+      isTrue,
+    );
+    expect(
+      preferences.copyWith(reminderHour: 8).reminderFallsInQuietHours,
+      isFalse,
+    );
+  });
+
+  test('通知默认关闭；主动开启获准后每日调度，关闭后取消', () async {
+    final scheduler = InMemoryGreetingScheduler();
+    final controller = NotificationController(
+      repository: InMemoryNotificationRepository(),
+      scheduler: scheduler,
+    );
+    addTearDown(controller.dispose);
+    await controller.load();
+    expect(controller.preferences.enabled, isFalse);
+    expect(scheduler.scheduleCount, 0);
+    expect(await controller.setEnabled(true), isTrue);
+    expect(scheduler.scheduleCount, 1);
+    expect(controller.preferences.enabled, isTrue);
+    expect(await controller.setEnabled(false), isTrue);
+    expect(scheduler.cancelCount, 1);
+  });
+
+  test('拒绝通知权限或提醒落入免打扰时不会启用', () async {
+    final scheduler = InMemoryGreetingScheduler()..permissionGranted = false;
+    final controller = NotificationController(
+      repository: InMemoryNotificationRepository(),
+      scheduler: scheduler,
+    );
+    addTearDown(controller.dispose);
+    await controller.load();
+    expect(await controller.setEnabled(true), isFalse);
+    expect(controller.preferences.enabled, isFalse);
+    expect(controller.permissionDenied, isTrue);
+    scheduler.permissionGranted = true;
+    await controller.updateTimes(reminderHour: 23);
+    expect(await controller.setEnabled(true), isFalse);
+    expect(controller.preferences.enabled, isFalse);
+    expect(scheduler.scheduleCount, 0);
+  });
+
+  test('通知时间配置通过 SharedPreferences 持久化', () async {
+    SharedPreferences.setMockInitialValues({});
+    final repository = SharedPreferencesNotificationRepository();
+    final changed = NotificationPreferences.defaults().copyWith(
+      reminderHour: 19,
+      reminderMinute: 15,
+      quietStartHour: 21,
+    );
+    await repository.save(changed);
+    final loaded = await repository.load();
+    expect(loaded.reminderTime, '19:15');
+    expect(loaded.quietStartTime, '21:00');
+    expect(loaded.enabled, isFalse);
+  });
+
   test('角色状态可序列化，并保留情绪、数值和当前话题', () {
     final original = CharacterState(
       mood: CharacterMood.happy,
@@ -188,6 +261,20 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 50));
     expect(find.text('今天有点累'), findsOneWidget);
     expect(find.textContaining('听起来你今天很辛苦'), findsOneWidget);
+  });
+
+  testWidgets('首页可打开通知设置，并由用户主动开启每日提醒', (tester) async {
+    final scheduler = InMemoryGreetingScheduler();
+    await tester.pumpWidget(CompanionApp(greetingScheduler: scheduler));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-notification-settings')));
+    await tester.pumpAndSettle();
+    expect(find.text('通知与提醒'), findsOneWidget);
+    expect(find.byKey(const Key('reminder-time-setting')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('notification-enabled-switch')));
+    await tester.pumpAndSettle();
+    expect(scheduler.scheduleCount, 1);
+    expect(find.text('每日主动问候'), findsOneWidget);
   });
 
   testWidgets('手机端底部导航可打开衣橱和记忆页面', (tester) async {

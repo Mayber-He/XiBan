@@ -9,10 +9,12 @@ class HomePage extends StatelessWidget {
     super.key,
     required this.characterState,
     required this.onStartChat,
+    required this.onOpenSettings,
   });
 
   final ValueListenable<CharacterState> characterState;
   final VoidCallback onStartChat;
+  final VoidCallback onOpenSettings;
 
   static const _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -33,7 +35,10 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
                 sliver: SliverList.list(
                   children: [
-                    _TopBar(dateLabel: dateLabel),
+                    _TopBar(
+                      dateLabel: dateLabel,
+                      onOpenSettings: onOpenSettings,
+                    ),
                     const SizedBox(height: 30),
                     Text(
                       '嗨，欢迎回来',
@@ -201,9 +206,10 @@ class _StatusMeter extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.dateLabel});
+  const _TopBar({required this.dateLabel, required this.onOpenSettings});
 
   final String dateLabel;
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -217,6 +223,12 @@ class _TopBar extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+        ),
+        IconButton(
+          key: const Key('open-notification-settings'),
+          tooltip: '通知设置',
+          onPressed: onOpenSettings,
+          icon: const Icon(Icons.notifications_none_rounded),
         ),
       ],
     );

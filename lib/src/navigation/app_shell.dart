@@ -7,16 +7,28 @@ import '../memory/memory_controller.dart';
 import '../memory/memory_repository.dart';
 import '../wardrobe/outfit_repository.dart';
 import '../wardrobe/wardrobe_controller.dart';
+import '../notifications/greeting_scheduler.dart';
+import '../notifications/notification_controller.dart';
+import '../notifications/notification_preferences_repository.dart';
 import '../pages/home_page.dart';
 import '../pages/chat_page.dart';
 import '../pages/memory_page.dart';
 import '../pages/wardrobe_page.dart';
+import '../pages/notification_settings_page.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, this.memoryRepository, this.outfitRepository});
+  const AppShell({
+    super.key,
+    this.memoryRepository,
+    this.outfitRepository,
+    this.notificationRepository,
+    this.greetingScheduler,
+  });
 
   final MemoryRepository? memoryRepository;
   final OutfitRepository? outfitRepository;
+  final NotificationPreferencesRepository? notificationRepository;
+  final GreetingScheduler? greetingScheduler;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -27,6 +39,7 @@ class _AppShellState extends State<AppShell> {
   late final _characterState = ValueNotifier(CharacterState.initial());
   late final MemoryController _memoryController;
   late final WardrobeController _wardrobeController;
+  late final NotificationController _notificationController;
   late final _chatController = ChatController(
     engine: const LocalDemoCharacterEngine(),
     characterState: _characterState,
@@ -49,10 +62,19 @@ class _AppShellState extends State<AppShell> {
       repository: widget.outfitRepository ?? InMemoryOutfitRepository(),
       characterState: _characterState,
     )..load();
+    _notificationController = NotificationController(
+      repository:
+          widget.notificationRepository ?? InMemoryNotificationRepository(),
+      scheduler: widget.greetingScheduler ?? InMemoryGreetingScheduler(),
+    )..load();
   }
 
   late final _pages = <Widget>[
-    HomePage(characterState: _characterState, onStartChat: () => _select(1)),
+    HomePage(
+      characterState: _characterState,
+      onStartChat: () => _select(1),
+      onOpenSettings: _openNotificationSettings,
+    ),
     ChatPage(controller: _chatController),
     WardrobePage(controller: _wardrobeController),
     MemoryPage(controller: _memoryController),
@@ -62,11 +84,21 @@ class _AppShellState extends State<AppShell> {
     setState(() => _selectedIndex = index);
   }
 
+  void _openNotificationSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            NotificationSettingsPage(controller: _notificationController),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _chatController.dispose();
     _memoryController.dispose();
     _wardrobeController.dispose();
+    _notificationController.dispose();
     _characterState.dispose();
     super.dispose();
   }

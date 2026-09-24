@@ -4,12 +4,22 @@ import 'navigation/app_shell.dart';
 import 'memory/memory_repository.dart';
 import 'theme/app_theme.dart';
 import 'wardrobe/outfit_repository.dart';
+import 'notifications/greeting_scheduler.dart';
+import 'notifications/notification_preferences_repository.dart';
 
 class CompanionApp extends StatelessWidget {
-  const CompanionApp({super.key, this.memoryRepository, this.outfitRepository});
+  const CompanionApp({
+    super.key,
+    this.memoryRepository,
+    this.outfitRepository,
+    this.notificationRepository,
+    this.greetingScheduler,
+  });
 
   final MemoryRepository? memoryRepository;
   final OutfitRepository? outfitRepository;
+  final NotificationPreferencesRepository? notificationRepository;
+  final GreetingScheduler? greetingScheduler;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +30,8 @@ class CompanionApp extends StatelessWidget {
       home: AppShell(
         memoryRepository: memoryRepository,
         outfitRepository: outfitRepository,
+        notificationRepository: notificationRepository,
+        greetingScheduler: greetingScheduler,
       ),
     );
   }
