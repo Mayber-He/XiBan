@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import '../character/character_state.dart';
 import '../chat/character_engine.dart';
 import '../chat/chat_controller.dart';
+import '../memory/memory_controller.dart';
+import '../memory/memory_repository.dart';
 import '../pages/home_page.dart';
 import '../pages/chat_page.dart';
+import '../pages/memory_page.dart';
 import '../pages/placeholder_page.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({super.key, this.memoryRepository});
+
+  final MemoryRepository? memoryRepository;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -17,6 +22,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   late final _characterState = ValueNotifier(CharacterState.initial());
+  late final MemoryController _memoryController;
   late final _chatController = ChatController(
     engine: const LocalDemoCharacterEngine(),
     characterState: _characterState,
@@ -29,6 +35,14 @@ class _AppShellState extends State<AppShell> {
     _NavItem('记忆', Icons.bookmark_border_rounded, Icons.bookmark_rounded),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _memoryController = MemoryController(
+      repository: widget.memoryRepository ?? InMemoryMemoryRepository(),
+    )..load();
+  }
+
   late final _pages = <Widget>[
     HomePage(characterState: _characterState, onStartChat: () => _select(1)),
     ChatPage(controller: _chatController),
@@ -38,12 +52,7 @@ class _AppShellState extends State<AppShell> {
       icon: Icons.checkroom_outlined,
       detail: '授权服装素材接入后，就可以在这里换装',
     ),
-    const FeaturePlaceholder(
-      title: '记忆',
-      subtitle: '你可以随时查看和管理她记住的事。',
-      icon: Icons.bookmark_border_rounded,
-      detail: '记忆控制与云端同步正在准备中',
-    ),
+    MemoryPage(controller: _memoryController),
   ];
 
   void _select(int index) {
@@ -53,6 +62,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _chatController.dispose();
+    _memoryController.dispose();
     _characterState.dispose();
     super.dispose();
   }

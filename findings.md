@@ -8,3 +8,4 @@
 - 产品素材须来自授权渠道；目前没有提供授权资产、模型 API 凭据或云后端配置。
 - UI/UX 技能支持 Flutter 的通用设计约束，但其自动设计系统搜索说明以 React Native 为工作栈；本项目将采用技能中的通用移动端可访问性、布局、触达区域与反馈原则，不照搬 React Native 栈建议。
 - Flutter 初始化曾在沙盒下访问 Android 工具探测失败；获批的工作区工具权限下可运行 Flutter 分析、测试和 Windows 构建。
+- 记忆功能通过 `MemoryRepository` 隔离存储；当前生产入口使用 SharedPreferences 本机持久化，全局开关默认关闭，暂无云后端配置。

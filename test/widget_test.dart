@@ -1,8 +1,12 @@
 import 'package:xiban_companion/src/character/character_state.dart';
 import 'package:xiban_companion/src/chat/character_engine.dart';
 import 'package:xiban_companion/src/chat/chat_controller.dart';
+import 'package:xiban_companion/src/memory/companion_memory.dart';
+import 'package:xiban_companion/src/memory/memory_controller.dart';
+import 'package:xiban_companion/src/memory/memory_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xiban_companion/src/companion_app.dart';
 
 void main() {
@@ -76,6 +80,68 @@ void main() {
     expect(state.value.mood, CharacterMood.tired);
   });
 
+  test('记忆内容可新增、编辑、单条停用、全局关闭和删除', () async {
+    final repository = InMemoryMemoryRepository();
+    final controller = MemoryController(repository: repository);
+    addTearDown(controller.dispose);
+    await controller.load();
+
+    await controller.add(
+      content: '喜欢周末散步',
+      category: MemoryCategory.preference,
+      importance: 4,
+    );
+    final memory = controller.memories.single;
+    expect(memory.content, '喜欢周末散步');
+    expect(memory.isEnabled, isTrue);
+
+    await controller.update(
+      memory.id,
+      content: '喜欢清晨散步',
+      category: MemoryCategory.routine,
+      importance: 5,
+    );
+    expect(controller.memories.single.content, '喜欢清晨散步');
+    expect(controller.memories.single.category, MemoryCategory.routine);
+    expect(controller.memories.single.importance, 5);
+
+    await controller.setMemoryEnabled(memory.id, false);
+    await controller.setEnabled(true);
+    expect(controller.memories.single.isEnabled, isFalse);
+    expect(controller.isEnabled, isTrue);
+
+    await controller.setEnabled(false);
+    await controller.delete(memory.id);
+    expect(controller.memories, isEmpty);
+    expect(controller.isEnabled, isFalse);
+  });
+
+  test('记忆能通过本机 SharedPreferences 持久化', () async {
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    final repository = SharedPreferencesMemoryRepository(
+      preferences: preferences,
+    );
+    final now = DateTime.utc(2026, 9, 24, 9);
+    final entry = CompanionMemory(
+      id: 'memory-1',
+      userId: 'local-user',
+      content: '周五有重要安排',
+      category: MemoryCategory.importantDate,
+      importance: 5,
+      sourceMessageId: null,
+      createdAt: now,
+      updatedAt: now,
+      isEnabled: true,
+    );
+
+    await repository.saveMemories([entry]);
+    await repository.saveEnabled(true);
+
+    expect((await repository.loadMemories()).single.content, '周五有重要安排');
+    expect(await repository.loadEnabled(), isTrue);
+  });
+
   testWidgets('首页展示清晰的 AI 身份说明与聊天入口', (tester) async {
     await tester.pumpWidget(const CompanionApp());
 
@@ -108,7 +174,28 @@ void main() {
 
     await tester.tap(find.text('记忆').last);
     await tester.pumpAndSettle();
-    expect(find.text('记忆控制与云端同步正在准备中'), findsOneWidget);
+    expect(find.text('记忆管理'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('add-memory-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('memory-content')), '喜欢周末散步');
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+    expect(find.text('喜欢周末散步'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('编辑记忆'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('memory-content')), '喜欢清晨散步');
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+    expect(find.text('喜欢清晨散步'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('memory-global-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('删除记忆'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('删除').last);
+    await tester.pumpAndSettle();
+    expect(find.text('还没有保存的记忆'), findsOneWidget);
   });
 
   testWidgets('宽屏使用侧边导航', (tester) async {
