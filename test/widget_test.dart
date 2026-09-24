@@ -14,6 +14,7 @@ import 'package:xiban_companion/src/notifications/greeting_scheduler.dart';
 import 'package:xiban_companion/src/notifications/notification_controller.dart';
 import 'package:xiban_companion/src/notifications/notification_preferences.dart';
 import 'package:xiban_companion/src/notifications/notification_preferences_repository.dart';
+import 'package:xiban_companion/src/desktop/desktop_companion_window.dart';
 
 void main() {
   test('免打扰区间正确识别跨午夜及边界时间', () {
@@ -275,6 +276,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(scheduler.scheduleCount, 1);
     expect(find.text('每日主动问候'), findsOneWidget);
+  });
+
+  testWidgets('桌面迷你陪伴状态可进入、展示身份並恢复完整窗口', (tester) async {
+    final window = InMemoryCompanionWindowController();
+    await tester.pumpWidget(CompanionApp(desktopWindowController: window));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('enter-mini-mode')));
+    await tester.pumpAndSettle();
+    expect(find.text('AI 陪伴角色 · 并非田曦薇本人'), findsOneWidget);
+    expect(find.byKey(const Key('mini-start-chat')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('restore-main-window')));
+    await tester.pumpAndSettle();
+    expect(window.isMiniMode, isFalse);
+    expect(find.byKey(const Key('enter-mini-mode')), findsOneWidget);
   });
 
   testWidgets('手机端底部导航可打开衣橱和记忆页面', (tester) async {

@@ -28,4 +28,8 @@
 - Android 添加通知权限、开机恢复接收器与 Java 时间库 desugaring 配置；采用不精确定时，不申请精确闹钟权限。
 - 第六阶段验证：`flutter analyze` 通过；`flutter test` 16 项通过；Windows Debug 构建通过。Android SDK 未安装，尚未执行 APK 构建或设备验证。
 - 第六个中文提交：待创建。
-- 开始 Windows 桌面迷你陪伴窗口与托盘切片。
+- 第六个中文提交：`bdc2477`（功能：完成通知偏好与主动问候）。
+- 完成 Windows 托盘菜单、关闭时隐藏到托盘、无边框置顶迷你窗口、拖动、角色状态展示和恢复完整窗口；复用 Windows 应用图标。
+- 第七阶段验证：`flutter analyze` 通过；`flutter test` 17 项通过；Windows Debug 构建通过。实际托盘与系统窗口行为尚未在交互桌面会话中人工验收。
+- 第七个中文提交：待创建。
+- 开始最终稳定性与双端配置检查；Android 原生构建仍受缺少 Android SDK 阻塞。

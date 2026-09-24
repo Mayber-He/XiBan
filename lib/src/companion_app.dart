@@ -6,6 +6,7 @@ import 'theme/app_theme.dart';
 import 'wardrobe/outfit_repository.dart';
 import 'notifications/greeting_scheduler.dart';
 import 'notifications/notification_preferences_repository.dart';
+import 'desktop/desktop_companion_window.dart';
 
 class CompanionApp extends StatelessWidget {
   const CompanionApp({
@@ -14,12 +15,14 @@ class CompanionApp extends StatelessWidget {
     this.outfitRepository,
     this.notificationRepository,
     this.greetingScheduler,
+    this.desktopWindowController,
   });
 
   final MemoryRepository? memoryRepository;
   final OutfitRepository? outfitRepository;
   final NotificationPreferencesRepository? notificationRepository;
   final GreetingScheduler? greetingScheduler;
+  final CompanionWindowController? desktopWindowController;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +35,7 @@ class CompanionApp extends StatelessWidget {
         outfitRepository: outfitRepository,
         notificationRepository: notificationRepository,
         greetingScheduler: greetingScheduler,
+        desktopWindowController: desktopWindowController,
       ),
     );
   }
