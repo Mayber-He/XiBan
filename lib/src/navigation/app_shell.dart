@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../character/character_state.dart';
 import '../pages/home_page.dart';
 import '../pages/placeholder_page.dart';
 
@@ -12,6 +13,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
+  late final _characterState = ValueNotifier(CharacterState.initial());
 
   static const _items = [
     _NavItem('陪伴', Icons.home_outlined, Icons.home_rounded),
@@ -21,7 +23,7 @@ class _AppShellState extends State<AppShell> {
   ];
 
   late final _pages = <Widget>[
-    HomePage(onStartChat: () => _select(1)),
+    HomePage(characterState: _characterState, onStartChat: () => _select(1)),
     const FeaturePlaceholder(
       title: '聊天',
       subtitle: '把今天的心情，从一句话开始。',
@@ -44,6 +46,12 @@ class _AppShellState extends State<AppShell> {
 
   void _select(int index) {
     setState(() => _selectedIndex = index);
+  }
+
+  @override
+  void dispose() {
+    _characterState.dispose();
+    super.dispose();
   }
 
   @override

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
+import '../character/character_state.dart';
 import '../theme/app_theme.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.onStartChat});
+  const HomePage({
+    super.key,
+    required this.characterState,
+    required this.onStartChat,
+  });
 
+  final ValueListenable<CharacterState> characterState;
   final VoidCallback onStartChat;
 
   static const _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
@@ -41,6 +48,12 @@ class HomePage extends StatelessWidget {
                     const SizedBox(height: 24),
                     _CompanionCard(onStartChat: onStartChat),
                     const SizedBox(height: 20),
+                    ValueListenableBuilder<CharacterState>(
+                      valueListenable: characterState,
+                      builder: (context, state, _) =>
+                          _CharacterStatusCard(state: state),
+                    ),
+                    const SizedBox(height: 20),
                     _TodayCard(onStartChat: onStartChat),
                     const SizedBox(height: 28),
                     Text(
@@ -65,6 +78,124 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CharacterStatusCard extends StatelessWidget {
+  const _CharacterStatusCard({required this.state});
+
+  final CharacterState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppTheme.blush,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(state.mood.icon, color: AppTheme.coral),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '她现在${state.mood.label}',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        state.currentTopic == null
+                            ? '角色状态会随着相处慢慢变化'
+                            : '最近聊到：${state.currentTopic}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatusMeter(
+                    label: '精力',
+                    value: state.energy,
+                    icon: Icons.bolt_rounded,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: _StatusMeter(
+                    label: '默契',
+                    value: state.affection,
+                    icon: Icons.favorite_border_rounded,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusMeter extends StatelessWidget {
+  const _StatusMeter({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final int value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: AppTheme.mutedInk),
+            const SizedBox(width: 5),
+            Text(
+              '$label  $value',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Semantics(
+          label: '$label：$value%',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: value / 100,
+              minHeight: 6,
+              backgroundColor: AppTheme.blush,
+              color: AppTheme.coral,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
