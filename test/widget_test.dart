@@ -4,6 +4,8 @@ import 'package:xiban_companion/src/chat/chat_controller.dart';
 import 'package:xiban_companion/src/memory/companion_memory.dart';
 import 'package:xiban_companion/src/memory/memory_controller.dart';
 import 'package:xiban_companion/src/memory/memory_repository.dart';
+import 'package:xiban_companion/src/wardrobe/outfit_repository.dart';
+import 'package:xiban_companion/src/wardrobe/wardrobe_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -142,6 +144,33 @@ void main() {
     expect(await repository.loadEnabled(), isTrue);
   });
 
+  test('换装会更新角色状态并持久化当前穿搭', () async {
+    final state = ValueNotifier(CharacterState.initial());
+    final repository = InMemoryOutfitRepository();
+    final controller = WardrobeController(
+      repository: repository,
+      characterState: state,
+    );
+    addTearDown(controller.dispose);
+    addTearDown(state.dispose);
+    await controller.load();
+
+    expect(controller.currentOutfit.id, 'daily');
+    await controller.select('home');
+
+    expect(controller.currentOutfit.name, '慵懒时光');
+    expect(state.value.currentOutfitId, 'home');
+    expect(await repository.loadCurrentOutfitId(), 'home');
+  });
+
+  test('当前穿搭使用本机 SharedPreferences 保存', () async {
+    SharedPreferences.setMockInitialValues({});
+    final repository = SharedPreferencesOutfitRepository();
+    await repository.saveCurrentOutfitId('commute');
+
+    expect(await repository.loadCurrentOutfitId(), 'commute');
+  });
+
   testWidgets('首页展示清晰的 AI 身份说明与聊天入口', (tester) async {
     await tester.pumpWidget(const CompanionApp());
 
@@ -170,7 +199,11 @@ void main() {
     await tester.pumpWidget(const CompanionApp());
     await tester.tap(find.text('衣橱').last);
     await tester.pumpAndSettle();
-    expect(find.text('授权服装素材接入后，就可以在这里换装'), findsOneWidget);
+    expect(find.text('今日衣橱'), findsOneWidget);
+    expect(find.text('当前穿着：午后漫步'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('outfit-select-home')));
+    await tester.pumpAndSettle();
+    expect(find.text('当前穿着：慵懒时光'), findsOneWidget);
 
     await tester.tap(find.text('记忆').last);
     await tester.pumpAndSettle();

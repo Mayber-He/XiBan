@@ -5,15 +5,18 @@ import '../chat/character_engine.dart';
 import '../chat/chat_controller.dart';
 import '../memory/memory_controller.dart';
 import '../memory/memory_repository.dart';
+import '../wardrobe/outfit_repository.dart';
+import '../wardrobe/wardrobe_controller.dart';
 import '../pages/home_page.dart';
 import '../pages/chat_page.dart';
 import '../pages/memory_page.dart';
-import '../pages/placeholder_page.dart';
+import '../pages/wardrobe_page.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, this.memoryRepository});
+  const AppShell({super.key, this.memoryRepository, this.outfitRepository});
 
   final MemoryRepository? memoryRepository;
+  final OutfitRepository? outfitRepository;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -23,6 +26,7 @@ class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   late final _characterState = ValueNotifier(CharacterState.initial());
   late final MemoryController _memoryController;
+  late final WardrobeController _wardrobeController;
   late final _chatController = ChatController(
     engine: const LocalDemoCharacterEngine(),
     characterState: _characterState,
@@ -41,17 +45,16 @@ class _AppShellState extends State<AppShell> {
     _memoryController = MemoryController(
       repository: widget.memoryRepository ?? InMemoryMemoryRepository(),
     )..load();
+    _wardrobeController = WardrobeController(
+      repository: widget.outfitRepository ?? InMemoryOutfitRepository(),
+      characterState: _characterState,
+    )..load();
   }
 
   late final _pages = <Widget>[
     HomePage(characterState: _characterState, onStartChat: () => _select(1)),
     ChatPage(controller: _chatController),
-    const FeaturePlaceholder(
-      title: '衣橱',
-      subtitle: '为她挑一套今天喜欢的穿搭。',
-      icon: Icons.checkroom_outlined,
-      detail: '授权服装素材接入后，就可以在这里换装',
-    ),
+    WardrobePage(controller: _wardrobeController),
     MemoryPage(controller: _memoryController),
   ];
 
@@ -63,6 +66,7 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     _chatController.dispose();
     _memoryController.dispose();
+    _wardrobeController.dispose();
     _characterState.dispose();
     super.dispose();
   }

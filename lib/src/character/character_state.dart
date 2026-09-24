@@ -112,6 +112,15 @@ class CharacterState {
     );
   }
 
+  CharacterState withOutfit(String outfitId) => CharacterState(
+    mood: mood,
+    energy: energy,
+    affection: affection,
+    currentOutfitId: outfitId,
+    lastInteractionAt: lastInteractionAt,
+    currentTopic: currentTopic,
+  );
+
   static int _readScore(Object? value, {required int fallback}) {
     if (value is int) return _boundedScore(value);
     return fallback;
