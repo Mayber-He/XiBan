@@ -78,6 +78,40 @@ class CharacterState {
     'currentTopic': currentTopic,
   };
 
+  CharacterState afterUserMessage(String message, {DateTime? at}) {
+    final normalized = message.toLowerCase();
+    final nextMood =
+        normalized.contains('累') ||
+            normalized.contains('困') ||
+            normalized.contains('疲惫')
+        ? CharacterMood.tired
+        : normalized.contains('担心') ||
+              normalized.contains('焦虑') ||
+              normalized.contains('害怕') ||
+              normalized.contains('难过') ||
+              normalized.contains('烦')
+        ? CharacterMood.worried
+        : normalized.contains('期待') ||
+              normalized.contains('激动') ||
+              normalized.contains('太好了')
+        ? CharacterMood.excited
+        : normalized.contains('开心') ||
+              normalized.contains('高兴') ||
+              normalized.contains('喜欢')
+        ? CharacterMood.happy
+        : CharacterMood.calm;
+    final topic = message.trim().runes.take(24).map(String.fromCharCode).join();
+
+    return CharacterState(
+      mood: nextMood,
+      energy: energy - 2,
+      affection: affection + 1,
+      currentOutfitId: currentOutfitId,
+      lastInteractionAt: at ?? DateTime.now(),
+      currentTopic: topic.isEmpty ? currentTopic : topic,
+    );
+  }
+
   static int _readScore(Object? value, {required int fallback}) {
     if (value is int) return _boundedScore(value);
     return fallback;

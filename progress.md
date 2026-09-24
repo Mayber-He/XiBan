@@ -12,3 +12,8 @@
 - 完成 `CharacterState` 情绪/数值/话题模型、JSON 编解码与首页状态卡。
 - 第二阶段验证：`flutter analyze` 通过；`flutter test` 5 项通过；Windows Debug 构建通过。
 - 当前准备提交角色状态切片；下一阶段实现文字聊天与人格/模型接口。
+- 第二个中文提交：`9490c6b`（功能：完成角色情绪状态展示）。
+- 第三阶段验证：`flutter analyze` 通过；`flutter test` 7 项通过；Windows Debug 构建通过。
+- 完成 `CharacterEngine` 可替换接口、本地演示流式回复、消息输入与聊天窗口；对话与状态目前仅保存在进程内存。
+- 第三个中文提交：待创建。
+- 下一阶段计划实现用户可查看、添加、编辑、删除和关闭的本地记忆。

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../character/character_state.dart';
+import '../chat/character_engine.dart';
+import '../chat/chat_controller.dart';
 import '../pages/home_page.dart';
+import '../pages/chat_page.dart';
 import '../pages/placeholder_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -14,6 +17,10 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   late final _characterState = ValueNotifier(CharacterState.initial());
+  late final _chatController = ChatController(
+    engine: const LocalDemoCharacterEngine(),
+    characterState: _characterState,
+  );
 
   static const _items = [
     _NavItem('陪伴', Icons.home_outlined, Icons.home_rounded),
@@ -24,12 +31,7 @@ class _AppShellState extends State<AppShell> {
 
   late final _pages = <Widget>[
     HomePage(characterState: _characterState, onStartChat: () => _select(1)),
-    const FeaturePlaceholder(
-      title: '聊天',
-      subtitle: '把今天的心情，从一句话开始。',
-      icon: Icons.chat_bubble_outline_rounded,
-      detail: '文字聊天与角色记忆正在准备中',
-    ),
+    ChatPage(controller: _chatController),
     const FeaturePlaceholder(
       title: '衣橱',
       subtitle: '为她挑一套今天喜欢的穿搭。',
@@ -50,6 +52,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _chatController.dispose();
     _characterState.dispose();
     super.dispose();
   }
