@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../chat/chat_controller.dart';
 import '../chat/chat_message.dart';
+import '../chat/model_config_controller.dart';
 import '../theme/app_theme.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.controller});
+  const ChatPage({
+    super.key,
+    required this.controller,
+    required this.modelConfigController,
+    required this.onOpenModelSettings,
+  });
 
   final ChatController controller;
+  final ModelConfigController modelConfigController;
+  final VoidCallback onOpenModelSettings;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -60,26 +68,21 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return SafeArea(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 18, 24, 14),
+            padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 920),
               child: Row(
                 children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: AppTheme.blush,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: AppTheme.coral,
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/companion_portrait.png',
+                      width: 46,
+                      height: 46,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -88,24 +91,33 @@ class _ChatPageState extends State<ChatPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '和她聊聊',
+                          '曦伴 · 和她聊聊',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'AI 陪伴角色 · 并非田曦薇本人',
+                          'AI 陪伴角色，并非田曦薇本人',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.lock_outline_rounded,
-                    size: 18,
-                    color: colors.onSurfaceVariant,
+                  if (MediaQuery.sizeOf(context).width >= 500)
+                    AnimatedBuilder(
+                      animation: widget.modelConfigController,
+                      builder: (context, _) => Text(
+                        widget.modelConfigController.isConfigured
+                            ? widget.modelConfigController.config!.model
+                            : '本地演示',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  IconButton(
+                    key: const Key('open-model-settings'),
+                    tooltip: '模型配置',
+                    onPressed: widget.onOpenModelSettings,
+                    icon: const Icon(Icons.tune_rounded),
                   ),
-                  const SizedBox(width: 6),
-                  Text('本地演示', style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
@@ -121,7 +133,7 @@ class _ChatPageState extends State<ChatPage> {
                     constraints: const BoxConstraints(maxWidth: 920),
                     child: ListView.separated(
                       controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
                       itemCount: messages.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) =>
@@ -133,7 +145,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 920),
               child: AnimatedBuilder(
@@ -167,7 +179,7 @@ class _MessageBubble extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 620),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: isUser ? AppTheme.coral : Colors.white,
+            color: isUser ? AppTheme.coral : const Color(0xFFF2E8DE),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(20),
               topRight: const Radius.circular(20),

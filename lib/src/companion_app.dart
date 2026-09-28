@@ -27,7 +27,7 @@ class CompanionApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '陪伴时光',
+      title: '曦伴',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: AppShell(

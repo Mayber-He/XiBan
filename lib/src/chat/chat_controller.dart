@@ -14,7 +14,7 @@ class ChatController extends ChangeNotifier {
       ChatMessage(
         id: 'welcome',
         role: ChatRole.character,
-        content: '你好呀，我是你的 AI 陪伴角色。今天过得怎么样？',
+        content: '你好呀，今天过得怎么样？想开心一点的话，也可以先从最想说的事开始。',
         createdAt: DateTime.now(),
       ),
     );

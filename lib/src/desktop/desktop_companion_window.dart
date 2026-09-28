@@ -54,7 +54,7 @@ class WindowsCompanionWindowController extends ChangeNotifier
       size: const Size(1120, 780),
       minimumSize: const Size(760, 560),
       center: true,
-      title: '陪伴时光',
+      title: '曦伴',
       skipTaskbar: false,
     );
     await windowManager.waitUntilReadyToShow(options, () async {
@@ -77,14 +77,14 @@ class WindowsCompanionWindowController extends ChangeNotifier
       flush: true,
     );
     await trayManager.setIcon(iconFile.path);
-    await trayManager.setToolTip('陪伴时光');
+    await trayManager.setToolTip('曦伴');
     await trayManager.setContextMenu(
       Menu(
         items: [
           MenuItem(key: 'show', label: '打开主窗口'),
           MenuItem(key: 'mini', label: '迷你陪伴窗口'),
           MenuItem.separator(),
-          MenuItem(key: 'exit', label: '退出陪伴时光'),
+          MenuItem(key: 'exit', label: '退出曦伴'),
         ],
       ),
     );

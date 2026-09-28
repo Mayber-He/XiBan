@@ -34,7 +34,7 @@ class LocalGreetingScheduler implements GreetingScheduler {
     const settings = InitializationSettings(
       android: AndroidInitializationSettings('ic_stat_companion'),
       windows: WindowsInitializationSettings(
-        appName: '陪伴时光',
+        appName: '曦伴',
         appUserModelId: 'Com.Xiban.Companion',
         guid: '3d0f37b4-a463-4c4e-b8ab-8a3d8ab7a0fb',
       ),
@@ -75,7 +75,7 @@ class LocalGreetingScheduler implements GreetingScheduler {
 
     await _plugin.zonedSchedule(
       id: _notificationId,
-      title: '陪伴时光',
+      title: '曦伴',
       body: '今天也别忘了照顾自己。想聊聊时，我在这里。',
       scheduledDate: scheduled,
       notificationDetails: const NotificationDetails(
@@ -104,7 +104,7 @@ class LocalGreetingScheduler implements GreetingScheduler {
     await initialize();
     await _plugin.show(
       id: _notificationId + 1,
-      title: '陪伴时光',
+      title: '曦伴',
       body: '今天也别忘了照顾自己。想聊聊时，我在这里。',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

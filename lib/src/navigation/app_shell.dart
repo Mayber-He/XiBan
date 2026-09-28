@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../character/character_state.dart';
-import '../chat/character_engine.dart';
 import '../chat/chat_controller.dart';
+import '../chat/model_config_controller.dart';
+import '../chat/model_config_repository.dart';
+import '../chat/openai_compatible_engine.dart';
 import '../memory/memory_controller.dart';
 import '../memory/memory_repository.dart';
 import '../wardrobe/outfit_repository.dart';
@@ -18,6 +20,8 @@ import '../pages/chat_page.dart';
 import '../pages/memory_page.dart';
 import '../pages/wardrobe_page.dart';
 import '../pages/notification_settings_page.dart';
+import '../pages/model_settings_page.dart';
+import '../pages/settings_page.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({
@@ -42,12 +46,17 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   late final _characterState = ValueNotifier(CharacterState.initial());
+  late final _modelConfigController = ModelConfigController(
+    repository: SharedPreferencesModelConfigRepository(),
+  );
   late final MemoryController _memoryController;
   late final WardrobeController _wardrobeController;
   late final NotificationController _notificationController;
   late final CompanionWindowController _desktopWindowController;
   late final _chatController = ChatController(
-    engine: const LocalDemoCharacterEngine(),
+    engine: OpenAICompatibleCharacterEngine(
+      configController: _modelConfigController,
+    ),
     characterState: _characterState,
   );
 
@@ -56,11 +65,13 @@ class _AppShellState extends State<AppShell> {
     _NavItem('聊天', Icons.chat_bubble_outline_rounded, Icons.chat_rounded),
     _NavItem('衣橱', Icons.checkroom_outlined, Icons.checkroom_rounded),
     _NavItem('记忆', Icons.bookmark_border_rounded, Icons.bookmark_rounded),
+    _NavItem('设置', Icons.settings_outlined, Icons.settings_rounded),
   ];
 
   @override
   void initState() {
     super.initState();
+    _modelConfigController.load();
     _memoryController = MemoryController(
       repository: widget.memoryRepository ?? InMemoryMemoryRepository(),
     )..load();
@@ -85,9 +96,18 @@ class _AppShellState extends State<AppShell> {
       onEnterMiniMode: () => _desktopWindowController.enterMiniMode(),
       showMiniMode: widget.desktopWindowController != null,
     ),
-    ChatPage(controller: _chatController),
+    ChatPage(
+      controller: _chatController,
+      modelConfigController: _modelConfigController,
+      onOpenModelSettings: _openModelSettings,
+    ),
     WardrobePage(controller: _wardrobeController),
     MemoryPage(controller: _memoryController),
+    SettingsPage(
+      modelConfigController: _modelConfigController,
+      onOpenChatModelSettings: _openModelSettings,
+      onOpenNotificationSettings: _openNotificationSettings,
+    ),
   ];
 
   void _select(int index) {
@@ -103,9 +123,18 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  void _openModelSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ModelSettingsPage(controller: _modelConfigController),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _chatController.dispose();
+    _modelConfigController.dispose();
     _memoryController.dispose();
     _wardrobeController.dispose();
     _notificationController.dispose();
@@ -148,7 +177,7 @@ class _AppShellState extends State<AppShell> {
                           leading: Padding(
                             padding: const EdgeInsets.only(bottom: 28, top: 12),
                             child: Semantics(
-                              label: '陪伴时光',
+                              label: '曦伴',
                               child: Container(
                                 width: 48,
                                 height: 48,
@@ -156,9 +185,14 @@ class _AppShellState extends State<AppShell> {
                                   color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: const Icon(
-                                  Icons.favorite_rounded,
-                                  color: Colors.white,
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  '曦',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 23,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ),
@@ -226,7 +260,7 @@ class _MiniCompanionPage extends StatelessWidget {
                     child: const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        '陪伴时光',
+                        '曦伴',
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -241,17 +275,12 @@ class _MiniCompanionPage extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            Container(
-              width: 112,
-              height: 112,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFFF7DFD8),
-              ),
-              child: const Icon(
-                Icons.auto_awesome_rounded,
-                size: 42,
-                color: Color(0xFFC76F61),
+            ClipOval(
+              child: Image.asset(
+                'assets/companion_portrait.png',
+                width: 136,
+                height: 136,
+                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(height: 20),
@@ -263,7 +292,7 @@ class _MiniCompanionPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Text('AI 陪伴角色 · 并非田曦薇本人', textAlign: TextAlign.center),
+            const Text('AI 陪伴角色，并非田曦薇本人', textAlign: TextAlign.center),
             const Spacer(),
             FilledButton.icon(
               key: const Key('mini-start-chat'),
